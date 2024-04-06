@@ -1,83 +1,68 @@
+#
+# Copyright (C) 2019 Xingwang Liao
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=frp
-PKG_VERSION:=0.33.0
+PKG_VERSION:=0.56.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/fatedier/frp/tar.gz/v${PKG_VERSION}?
-PKG_HASH:=9c773ab4bbd208705c795599c5e69302a379734921c90489ed8ae331c24836cb
+PKG_HASH:=084542bad79f9bed7fb18f31e7763589663e1dca243fe1c3d3dbfec45610ad5a
 
-PKG_MAINTAINER:=Richard Yu <yurichard3839@gmail.com>
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
+PKG_MAINTAINER:=Xingwang Liao <kuoruan@gmail.com>
 
-PKG_BUILD_DEPENDS:=golang/host
+PKG_BUILD_DEPENDS:=golang/host upx/host
 PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
 
 GO_PKG:=github.com/fatedier/frp
 GO_PKG_BUILD_PKG:=github.com/fatedier/frp/cmd/...
 
+GO_PKG_LDFLAGS:=-s -w
+
 include $(INCLUDE_DIR)/package.mk
 include ../../lang/golang/golang-package.mk
 
-define Package/frp/template
-  SECTION:=net
-  CATEGORY:=Network
-  SUBMENU:=Web Servers/Proxies
-  TITLE:=frp - fast reverse proxy
-  URL:=https://github.com/fatedier/frp
-  DEPENDS:=$(GO_ARCH_DEPENDS)
+define frp/templates
+  define Package/$(1)
+    TITLE:=A fast reverse proxy ($(1))
+    URL:=https://github.com/fatedier/frp
+    SECTION:=net
+    CATEGORY:=Network
+    SUBMENU:=Web Servers/Proxies
+    DEPENDS:=$$(GO_ARCH_DEPENDS)
+  endef
+
+  define Package/$(1)/description
+  frp is a fast reverse proxy to help you expose a local server behind a NAT or firewall
+  to the internet. As of now, it supports tcp & udp, as well as http and https protocols,
+  where requests can be forwarded to internal services by domain name.
+
+  This package contains the $(1).
+  endef
+
+  define Package/$(1)/install
+	$$(call GoPackage/Package/Install/Bin,$$(PKG_INSTALL_DIR))
+
+	$$(INSTALL_DIR) $$(1)/usr/bin
+	$$(INSTALL_BIN) $$(PKG_INSTALL_DIR)/usr/bin/$(1) $$(1)/usr/bin/
+
+	$(STAGING_DIR_HOST)/bin/upx --lzma --best $$(1)/usr/bin/$(1) || true
+  endef
 endef
 
-define Package/frpc
-  $(call Package/frp/template)
-  TITLE+= (client)
-endef
+FRP_COMPONENTS:=frpc frps
 
-define Package/frps
-  $(call Package/frp/template)
-  TITLE+= (server)
-endef
-
-define Package/frp/description
-  frp is a fast reverse proxy to help you expose a local server behind
-  a NAT or firewall to the internet.
-endef
-Package/frpc/description = $(Package/frp/description)
-Package/frps/description = $(Package/frp/description)
-
-define Package/frp/install
-	$(call GoPackage/Package/Install/Bin,$(PKG_INSTALL_DIR))
-
-	$(INSTALL_DIR) $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/$(2) $(1)/usr/bin/
-	$(INSTALL_DIR) $(1)/etc/frp/$(2).d/
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/conf/$(2)_full.ini $(1)/etc/frp/$(2).d/
-	$(INSTALL_DIR) $(1)/etc/config/
-	$(INSTALL_CONF) ./files/$(2).config $(1)/etc/config/$(2)
-	$(INSTALL_DIR) $(1)/etc/init.d/
-	$(INSTALL_BIN) ./files/$(2).init $(1)/etc/init.d/$(2)
-endef
-
-define Package/frpc/conffiles
-/etc/config/frpc
-endef
-
-define Package/frps/conffiles
-/etc/config/frps
-endef
-
-define Package/frpc/install
-  $(call Package/frp/install,$(1),frpc)
-endef
-
-define Package/frps/install
-  $(call Package/frp/install,$(1),frps)
-endef
-
-$(eval $(call GoBinPackage,frpc))
-$(eval $(call BuildPackage,frpc))
-$(eval $(call GoBinPackage,frps))
-$(eval $(call BuildPackage,frps))
+$(foreach component,$(FRP_COMPONENTS), \
+  $(eval $(call frp/templates,$(component))) \
+  $(eval $(call GoBinPackage,$(component))) \
+  $(eval $(call BuildPackage,$(component))) \
+)
