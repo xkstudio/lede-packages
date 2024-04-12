@@ -55,6 +55,7 @@ define Package/lvm2/description
 endef
 
 CONFIGURE_ARGS += \
+	--disable-selinux \
 	--disable-o_direct \
 	--with-default-pid-dir=/var/run \
 	--with-default-dm-run-dir=/var/run \
