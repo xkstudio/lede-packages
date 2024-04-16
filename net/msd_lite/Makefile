@@ -8,14 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=msd_lite
-PKG_VERSION:=1.11
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-03-15
+PKG_SOURCE_DATE:=2024-04-10
 PKG_SOURCE_URL:=https://github.com/rozhuk-im/msd_lite.git
-PKG_SOURCE_VERSION:=cfef57f31aba00aa2bfa147b6d491aa16a2a37e8
-PKG_MIRROR_HASH:=df89bb2172161e61a5be1dc1ef325f7ca12343541f2389ed6452207147c5bd45
+PKG_SOURCE_VERSION:=c1ff7b73516164655d52b156f58cf09bc1b6f145
+PKG_MIRROR_HASH:=skip
 
 PKG_LICENSE:=BSD-2-Clause
 PKG_LICENSE_FILES:=LICENSE
@@ -27,7 +26,7 @@ define Package/msd_lite
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Multi Stream daemon Lite
-  URL:=https://github.com/rozhuk-im/msd_litea
+  URL:=https://github.com/rozhuk-im/msd_lite
   DEPENDS:= +libpthread
 endef
 
