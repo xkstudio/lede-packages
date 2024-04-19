@@ -47,7 +47,7 @@ define Package/kcptun/Default
   define Package/kcptun-$(1)
     SECTION:=net
     CATEGORY:=Network
-    SUBMENU:=Web Servers/Proxies
+    SUBMENU:=Fuck GFW
     TITLE:=KCP-based Secure Tunnel $(1)
     URL:=https://github.com/xtaci/kcptun
     DEPENDS:=+kcptun-config
