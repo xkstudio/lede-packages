@@ -26,7 +26,7 @@ include ../../lang/golang/golang-package.mk
 define Package/kcptun-config
   SECTION:=net
   CATEGORY:=Network
-  SUBMENU:=Web Servers/Proxies
+  SUBMENU:=Fuck GFW
   TITLE:=Kcptun Config Scripts
   URL:=https://github.com/xtaci/kcptun
   DEPENDS:=$(GO_ARCH_DEPENDS)
