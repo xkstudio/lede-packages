@@ -121,6 +121,7 @@ HOST_CONFIGURE_ARGS += \
 	--without-x
 
 CONFIGURE_ARGS += \
+	--disable-selinux \
 	--disable-gui \
 	--disable-gtktest \
 	--disable-xim \
