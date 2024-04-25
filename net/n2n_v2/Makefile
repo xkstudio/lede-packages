@@ -28,20 +28,20 @@ include $(INCLUDE_DIR)/package.mk
 define Package/n2n/Default
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=N2N Peer-to-peer VPN (v2.8-stable)
+  TITLE:=N2N Peer-to-peer VPN
   URL:=http://www.ntop.org/n2n
   SUBMENU:=VPN
 endef
 
 define Package/n2n-edge
   $(call Package/n2n/Default)
-  TITLE+= client (edge node)
+  TITLE+= client (edge node v2.8-stable)
   DEPENDS+=+kmod-tun +resolveip +libopenssl +libcap +libzstd
 endef
 
 define Package/n2n-supernode
   $(call Package/n2n/Default)
-  TITLE+= server (supernode)
+  TITLE+= server (supernode v2.8-stable)
   DEPENDS+=+libcap
 endef
 
