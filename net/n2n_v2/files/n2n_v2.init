@@ -32,7 +32,7 @@ start_instance() {
         [ "-$mtu" != "-" ] && mtu="-M $mtu"
         eval "$(ipcalc.sh "$ipaddr/$prefix")"
         netmask="$NETMASK"
-        /usr/bin/edge -u 0 -g 0 -d $tunname -a ${mode}:${address} -s $netmask -c $community $([ -n "$key" ] && echo -k $key) -l ${supernode}:${port}$supernode_bak $args $mtu
+        /usr/bin/edge -d $tunname -a ${mode}:${address} -s $netmask -c $community $([ -n "$key" ] && echo -k $key) -l ${supernode}:${port}$supernode_bak $args $mtu
         iptables -I FORWARD -i "$tunname" -j ACCEPT -m comment --comment 'n2n edge eth'
         iptables -I FORWARD -o "$tunname" -j ACCEPT -m comment --comment 'n2n edge eth'
         iptables -t nat -I POSTROUTING -o "$tunname" -j MASQUERADE -m comment --comment 'n2n edge net'
