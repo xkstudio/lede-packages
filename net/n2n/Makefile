@@ -8,20 +8,18 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=n2n
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/ntop/n2n.git
-PKG_SOURCE_VERSION:=fff50a7d80728069ca101a262d1543d85ac5313f
+PKG_SOURCE_VERSION:=d8b02bcbdb7ee8aa33244b3f6fabd8dfc547571a
 PKG_SOURCE_DATE:=20231024
 PKG_MIRROR_HASH:=skip
-PKG_VERSION:=3.1.1-$(PKG_SOURCE_DATE)-$(call version_abbrev,$(PKG_SOURCE_VERSION))
+PKG_VERSION:=3.0.0-$(PKG_SOURCE_DATE)-$(call version_abbrev,$(PKG_SOURCE_VERSION))
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 
 PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILE:=LICENSE
 PKG_MAINTAINER:=Emanuele Faranda <faranda@ntop.org>
 
-#autogen fix
-PKG_FIXUP:=autoreconf
-
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/cmake.mk
 
 define Package/n2n/template
   SECTION:=net
@@ -54,10 +52,17 @@ define Package/n2n-utils/description
   This package contains extend utilities for the N2N infrastructure.
 endef
 
+CMAKE_OPTIONS+= \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DN2N_OPTION_USE_PTHREAD=ON \
+	-DN2N_OPTION_USE_OPENSSL=ON \
+	-DN2N_OPTION_USE_PCAPLIB=ON \
+	-DN2N_OPTION_USE_ZSTD=ON
+
 define Package/n2n/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/edge $(1)/usr/bin/n2n-edge
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/supernode $(1)/usr/bin/n2n-supernode
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/edge $(1)/usr/bin/n2n-edge
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/supernode $(1)/usr/bin/n2n-supernode
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/n2n.config $(1)/etc/config/n2n
@@ -69,11 +74,9 @@ endef
 
 define Package/n2n-utils/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tools/n2n-benchmark $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tools/n2n-decode $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tools/n2n-keygen $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tools/n2n-portfwd $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tools/n2n-route $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/n2n-benchmark $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/n2n-decode $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/n2n-keygen $(1)/usr/bin/
 endef
 
 $(eval $(call BuildPackage,n2n))
