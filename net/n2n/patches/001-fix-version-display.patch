@@ -1,49 +1,14 @@
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -27,7 +27,7 @@ execute_process(
- )
- string(REGEX REPLACE "\n$" "" GIT_REV "${GIT_REV}")
- string(REGEX REPLACE "\n$" "" GIT_ID "${GIT_ID}")
--set(N2N_VERSION "${N2N_VERSION}.r${GIT_REV}.${GIT_ID}")
-+set(N2N_VERSION "${N2N_VERSION} (20231024-d8b02bcb)")
- MESSAGE(STATUS "Build from git rev: ${N2N_VERSION}")
- endif (GIT_ERROR_CODE EQUAL 0)
- 
---- a/src/edge.c
-+++ b/src/edge.c
-@@ -127,7 +127,7 @@ static void help (int level) {
- 
-     if(level == 0) return; /* no help required */
- 
--    printf("\n");
-+    //printf("\n");
-     print_n2n_version();
- 
-     if(level == 1) /* short help */ {
 --- a/src/n2n.c
 +++ b/src/n2n.c
-@@ -587,10 +587,10 @@ void hexdump (const uint8_t *buf, size_t len) {
+@@ -615,9 +615,9 @@ void hexdump (const uint8_t *buf, size_t len) {
  
  void print_n2n_version () {
  
--    printf("Welcome to n2n v.%s for %s\n"
-+    printf("Welcome to n2n %s for K-Wrt\n"
+-    printf("Welcome to n2n v.%s\n"
++    printf("Welcome to n2n %s on K-Wrt\n"
             "Built on %s\n"
--           "Copyright 2007-2021 - ntop.org and contributors\n\n",
--           GIT_RELEASE, PACKAGE_OSNAME, PACKAGE_BUILDDATE);
-+           "Copyright 2024 - ntop.org and contributors\n\n",
-+           GIT_RELEASE, PACKAGE_BUILDDATE);
+-           "Copyright 2007-2022 - ntop.org and contributors\n\n",
++           "Copyright 2024 (C) ntop.org and contributors\n\n",
+            PACKAGE_VERSION, PACKAGE_BUILDDATE);
  }
  
- /* *********************************************** */
---- a/src/supernode.c
-+++ b/src/supernode.c
-@@ -37,7 +37,7 @@ static void help (int level) {
-     if(level == 0) /* no help required */
-         return;
- 
--    printf("\n");
-+    //printf("\n");
-     print_n2n_version();
- 
-     if(level == 1) /* short help */ {
