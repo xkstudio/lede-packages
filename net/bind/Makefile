@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2006-2012 OpenWrt.org
-#               2014-2020 Noah Meyerhans <frodo@morgul.net>
+# Copyright (C) 2006-2024 OpenWrt.org
+#               2014-2024 Noah Meyerhans <frodo@morgul.net>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
