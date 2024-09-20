@@ -20,6 +20,7 @@ PKG_HASH:=05a704e3c8f7792a17315080a21214a4448fd2452c1b0dd5226a3a55f90b58c3
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
+PKG_BUILD_FLAGS:=gc-sections
 
 PKG_MAINTAINER:=Rick Farina <zerochaos@gentoo.org>
 
@@ -39,7 +40,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/aircrack-ng
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:=+AIRCRACK_NG_HWLOC:libhwloc +libpcap +libpcre +libpthread +libstdcpp
+  DEPENDS:=+AIRCRACK_NG_HWLOC:libhwloc +libpcap +libpcre2 +libpthread +libstdcpp
   DEPENDS += +AIRCRACK_NG_OPENSSL:libopenssl
   DEPENDS += +AIRCRACK_NG_GCRYPT:libgcrypt
   DEPENDS += +AIRCRACK_NG_SQLITE3:libsqlite3
@@ -82,6 +83,7 @@ CONFIGURE_ARGS += \
 	--with-libpcap-include=$(STAGING_DIR)/usr/include \
 	--with-libpcap-lib=$(STAGING_DIR)/usr/lib \
 	--without-opt \
+	--with-libbsd=no \
 	\
 	PYTHON=$(PYTHON) \
 	\
@@ -90,14 +92,11 @@ CONFIGURE_ARGS += \
 	$(if $(CONFIG_AIRCRACK_NG_HWLOC),--enable-hwloc,--disable-hwloc) \
 	$(if $(CONFIG_AIRCRACK_NG_SQLITE3),--with-sqlite3=$(STAGING_DIR)/usr,--without-sqlite3)
 
-TARGET_CFLAGS += -Wall -Wextra -ffunction-sections -fdata-sections -fcommon
+TARGET_CFLAGS += -Wall -Wextra -fcommon
 
 ifeq ($(CONFIG_AIRCRACK_NG_OPTIMIZE_SPEED),y)
 	TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
 endif
-
-TARGET_LDFLAGS+= \
-	-Wl,--gc-sections
 
 define Package/aircrack-ng/install
 	$(INSTALL_DIR) $(1)/usr/bin
