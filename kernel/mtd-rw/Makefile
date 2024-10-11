@@ -9,15 +9,11 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mtd-rw
-PKG_VERSION:=git-20160214
-PKG_RELEASE:=1
-
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_MIRROR_HASH:=c44db17c3e05079116a1704f277642c9ce6f5ca4fa380c60f7e6d44509dc16be
-PKG_SOURCE_URL:=https://github.com/jclehner/mtd-rw.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_SUBDIR=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=7e8562067d6a366c8cbaa8084396c33b7e12986b
+PKG_SOURCE_URL:=https://github.com/jclehner/mtd-rw.git
+PKG_SOURCE_VERSION:=e87767395a6d27380196702f5f7bf98e92774f3f
+PKG_SOURCE_DATE:=20210301
+PKG_MIRROR_HASH:=5412b730fcaff37cb2185275949aa5ff09227d29b58d69edad1fb5f1fc4a53ff
 
 PKG_MAINTAINER:=Joseph C. Lehner <joseph.c.lehner@gmail.com>
 PKG_LICENSE=GPL-2.0
@@ -29,6 +25,7 @@ define KernelPackage/mtd-rw
 	SUBMENU:=Other modules
 	TITLE:=Write-enabler for MTD partitions
 	FILES:=$(PKG_BUILD_DIR)/mtd-rw.ko
+	DEPENDS:=@!(TARGET_x86||TARGET_bcm27xx||TARGET_octeontx)
 endef
 
 define KernelPackage/mtd-rw/description
