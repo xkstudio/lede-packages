@@ -1,6 +1,15 @@
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -258,7 +258,7 @@
+@@ -3,7 +3,7 @@
+ #
+ 
+ ############################# INITIAL SECTION ##########################
+-cmake_minimum_required(VERSION 3.20)
++cmake_minimum_required(VERSION 3.10)
+ 
+ project(msd_lite C)
+ 
+@@ -258,7 +258,7 @@ add_custom_target(dist ${CMAKE_CURRENT_SOURCE_DIR}/dist.sh
  ##################### INSTALLATION #####################################
  
  # Configs
