@@ -1,0 +1,195 @@
+--- a/src/airodump-ng/airodump-ng.c	2026-04-27 15:37:56.689963251 +0800
++++ b/src/airodump-ng/airodump-ng.c	2026-04-27 15:51:54.171063377 +0800
+@@ -40,6 +40,7 @@
+ #define _GNU_SOURCE
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include <sys/stat.h>
+ #include <sys/ioctl.h>
+ #include <sys/wait.h>
+ #include <sys/time.h>
+@@ -274,6 +275,17 @@ static struct local_options
+ 	unsigned long min_pkts;
+ 
+ 	int relative_time; /* read PCAP in psuedo-real-time */
++
++	//[2026-04-25 23:02:59]，捕获到握手包的标志
++	int handshake;
++	//[2026-04-26 00:06:21]，捕获到握手包后退出程序
++	int handshake_exit;
++	//[2026-04-26 18:58:09]，捕获握手包的信号文件
++	char * handshake_ok_signal_file;
++	//[2026-04-26 20:21:01]，最大抓包文件大小
++	int max_cap_file_size;
++	//[2026-04-27 10:36:25]，退出信号
++	int exit_signal;
+ } lopt;
+ 
+ static void resetSelection(void)
+@@ -741,7 +753,7 @@ static struct oui * load_oui_file(void)
+ static const char usage[] =
+ 
+ 	"\n"
+-	"  %s - (C) 2006-2022 Thomas d\'Otreppe\n"
++	"  %s - (C) 2006-2026 Thomas d\'Otreppe, Xiaok\n"
+ 	"  https://www.aircrack-ng.org\n"
+ 	"\n"
+ 	"  usage: airodump-ng <options> <interface>[,<interface>,...]\n"
+@@ -776,6 +788,11 @@ static const char usage[] =
+ 	"      --write-interval\n"
+ 	"                  <seconds> : Output file(s) write interval in seconds\n"
+ 	"      --background <enable> : Override background detection.\n"
++	"      --handshake-exit      : Auto exit when successfully captured handshake packets.\n"
++	"      --handshake-ok-signal-file\n"
++	"                <file path> : handshake OK signal file, eg: /tmp/handshake.txt\n"
++	"      --max-cap-file-size\n"
++	"                <file size> : capture file szie (byte), eg: 5242880 (5 MiB)\n"
+ 	"      -n              <int> : Minimum AP packets recv'd before\n"
+ 	"                              for displaying it\n"
+ 	"\n"
+@@ -2792,13 +2809,37 @@ skip_probe:
+ 				memset(lopt.message, '\x00', sizeof(lopt.message));
+ 				snprintf(lopt.message,
+ 						 sizeof(lopt.message) - 1,
+-						 "][ WPA handshake: %02X:%02X:%02X:%02X:%02X:%02X ",
++						 "][ WPA handshake: %02X:%02X:%02X:%02X:%02X:%02X %s ",
+ 						 lopt.wpa_bssid[0],
+ 						 lopt.wpa_bssid[1],
+ 						 lopt.wpa_bssid[2],
+ 						 lopt.wpa_bssid[3],
+ 						 lopt.wpa_bssid[4],
+-						 lopt.wpa_bssid[5]);
++						 lopt.wpa_bssid[5],
++						 lopt.handshake_exit == 1 ? "(Exit)" : "");
++
++				//[2026-04-26 18:45:33]，将捕获到握手包的信号写入一个文件
++				if (lopt.handshake_ok_signal_file) {
++					FILE *fp = NULL;
++					//fp = fopen("/tmp/handshake.txt", "w");
++					fp = fopen(lopt.handshake_ok_signal_file, "w");
++					fprintf(fp, "%s,%02X:%02X:%02X:%02X:%02X:%02X,%02X:%02X:%02X:%02X:%02X:%02X\n",
++						ap_cur->essid,
++						lopt.wpa_bssid[0],
++						lopt.wpa_bssid[1],
++						lopt.wpa_bssid[2],
++						lopt.wpa_bssid[3],
++						lopt.wpa_bssid[4],
++						lopt.wpa_bssid[5],
++						st_cur->wpa.stmac[0],
++						st_cur->wpa.stmac[1],
++						st_cur->wpa.stmac[2],
++						st_cur->wpa.stmac[3],
++						st_cur->wpa.stmac[4],
++						st_cur->wpa.stmac[5]);
++					//fputs("This is testing for fputs...\n", fp);
++					fclose(fp);
++				}
+ 
+ 				if (opt.f_ivs != NULL)
+ 				{
+@@ -2843,6 +2884,9 @@ skip_probe:
+ 						return (EXIT_FAILURE);
+ 					}
+ 				}
++
++				//[2026-04-25 23:05:48]，标志已捕获到握手包
++				lopt.handshake = 1;
+ 			}
+ 		}
+ 	}
+@@ -5854,6 +5898,9 @@ int main(int argc, char * argv[])
+ 		   {"write-interval", 1, 0, 'I'},
+ 		   {"wps", 0, 0, 'W'},
+ 		   {"background", 1, 0, 'K'},
++		   {"handshake-exit", 0, &lopt.handshake_exit, 1},
++		   {"handshake-ok-signal-file", 1, 0, 0},
++		   {"max-cap-file-size", 1, 0, 0},
+ 		   {"min-packets", 1, 0, 'n'},
+ 		   {"real-time", 0, 0, 'T'},
+ 		   {0, 0, 0, 0}};
+@@ -5928,6 +5975,9 @@ int main(int argc, char * argv[])
+ 	lopt.detect_anomaly = 0;
+ 	lopt.airodump_start_time = NULL;
+ 	lopt.manufList = NULL;
++	lopt.handshake = 0;
++	lopt.handshake_ok_signal_file = NULL;
++	lopt.max_cap_file_size = 0;
+ 
+ 	opt.output_format_pcap = 1;
+ 	opt.output_format_csv = 1;
+@@ -6051,6 +6101,13 @@ int main(int argc, char * argv[])
+ 		{
+ 			case 0:
+ 
++				//[2026-04-26 19:55:35]，没有短选项的参数获取
++				if (strcmp(long_options[option_index].name, "handshake-ok-signal-file") == 0) {
++					lopt.handshake_ok_signal_file = optarg; // optarg 存储参数值
++				} else if (strcmp(long_options[option_index].name, "max-cap-file-size") == 0) {
++					lopt.max_cap_file_size = atoi(optarg);
++				}
++
+ 				break;
+ 
+ 			case ':':
+@@ -7286,11 +7343,61 @@ int main(int argc, char * argv[])
+ 			dump_add_packet(h80211, caplen, &ri, i);
+ 		}
+ 
++		//[2026-04-25 23:17:06] 捕获到握手包，退出程序
++		if (lopt.handshake_exit == 1 && lopt.handshake == 1) {
++			//sleep(3);
++			//lopt.do_exit = 1;
++			//show_cursor();
++			//reset_term();
++			//fprintf(stdout, "Quitting with WPA handshake ...\n");
++			snprintf(
++					lopt.message,
++					sizeof(lopt.message),
++					"][ Quitting with WPA handshake: %02X:%02X:%02X:%02X:%02X:%02X ]",
++					lopt.wpa_bssid[0],
++					lopt.wpa_bssid[1],
++					lopt.wpa_bssid[2],
++					lopt.wpa_bssid[3],
++					lopt.wpa_bssid[4],
++					lopt.wpa_bssid[5]);
++			quitting = 1;
++			quitting_event_ts = time(NULL);
++			lopt.handshake = 0;
++			lopt.exit_signal = 1;
++		}
++
++		//[2026-04-26 20:25:27] 抓包文件大小限制
++		if (lopt.max_cap_file_size > 1024) {
++			struct stat st;
++			if (stat(opt.f_cap_name, &st) == 0) {
++				if (st.st_size >= lopt.max_cap_file_size) {
++					//lopt.do_exit = 1;
++					//show_cursor();
++					//reset_term();
++					//fprintf(stdout, "Quitting with the max captured packet file size: (%ld KiB) %s\n", st.st_size/1024, opt.f_cap_name);
++					snprintf(
++						lopt.message,
++						sizeof(lopt.message),
++						"][ Quitting with the max captured packet file size: %ld KiB ]",
++						st.st_size/1024);
++					quitting = 1;
++					quitting_event_ts = time(NULL);
++					lopt.max_cap_file_size = 0;
++					lopt.exit_signal = 1;
++				}
++			}
++		}
++
+ 		if (quitting && time(NULL) - quitting_event_ts > 3)
+ 		{
+ 			quitting_event_ts = 0;
+ 			quitting = 0;
+ 			snprintf(lopt.message, sizeof(lopt.message), "]");
++
++			//[2026-04-27 10:48:59]，给出正式退出信号
++			if (lopt.exit_signal == 1) {
++				lopt.do_exit = 1;
++			}
+ 		}
+ 	}
+ 
