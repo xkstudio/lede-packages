@@ -166,11 +166,11 @@
 +					//lopt.do_exit = 1;
 +					//show_cursor();
 +					//reset_term();
-+					//fprintf(stdout, "Quitting with the max captured packet file size: (%ld KiB) %s\n", st.st_size/1024, opt.f_cap_name);
++					//fprintf(stdout, "Quitting with the max captured packet file size: (%lld KiB) %s\n", st.st_size/1024, opt.f_cap_name);
 +					snprintf(
 +						lopt.message,
 +						sizeof(lopt.message),
-+						"][ Quitting with the max captured packet file size: %ld KiB ]",
++						"][ Quitting with the max captured packet file size: %lld KiB ]",
 +						st.st_size/1024);
 +					quitting = 1;
 +					quitting_event_ts = time(NULL);
